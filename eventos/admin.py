@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Deporte, Evento, Participante, EventoParticipante
+from .models import Equipo
 
 
 @admin.register(Deporte)
@@ -34,3 +35,11 @@ class EventoParticipanteAdmin(admin.ModelAdmin):
     list_filter = ('fecha_inscripcion', 'evento')
     search_fields = ('evento__nombre', 'participante__nombre', 'participante__apellido', 'numero_inscripcion')
     ordering = ('-fecha_inscripcion',)
+
+
+@admin.register(Equipo)
+class EquipoAdmin(admin.ModelAdmin):
+    list_display = ('id', 'nombre', 'deporte', 'fecha_creacion')
+    list_filter = ('deporte', 'fecha_creacion')
+    search_fields = ('nombre', 'descripcion')
+    ordering = ('nombre',)

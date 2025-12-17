@@ -1,6 +1,7 @@
 from typing import List, Optional
 from django.db.models import QuerySet
 from .models import Deporte, Evento, Participante, EventoParticipante
+from .models import Equipo
 
 
 class DeporteRepository:
@@ -203,5 +204,53 @@ class EventoRepository:
             inscripcion.delete()
             return True
         except EventoParticipante.DoesNotExist:
+            return False
+
+
+class EquipoRepository:
+    """Repositorio para operaciones de acceso a datos de Equipo"""
+
+    @staticmethod
+    def get_all():
+        return Equipo.objects.select_related('deporte').all()
+
+    @staticmethod
+    def get_by_id(equipo_id: int):
+        try:
+            return Equipo.objects.select_related('deporte').get(pk=equipo_id)
+        except Equipo.DoesNotExist:
+            return None
+
+    @staticmethod
+    def get_by_deporte(deporte_id: int):
+        return Equipo.objects.filter(deporte_id=deporte_id).select_related('deporte')
+
+    @staticmethod
+    def get_by_nombre_y_deporte(nombre: str, deporte_id: int):
+        try:
+            return Equipo.objects.get(nombre=nombre, deporte_id=deporte_id)
+        except Equipo.DoesNotExist:
+            return None
+
+    @staticmethod
+    def create(nombre: str, deporte_id: int, descripcion: str = None) -> Equipo:
+        return Equipo.objects.create(nombre=nombre, deporte_id=deporte_id, descripcion=descripcion)
+
+    @staticmethod
+    def update(equipo: Equipo, nombre: str = None, descripcion: str = None) -> Equipo:
+        if nombre:
+            equipo.nombre = nombre
+        if descripcion is not None:
+            equipo.descripcion = descripcion
+        equipo.save()
+        return equipo
+
+    @staticmethod
+    def delete(equipo_id: int) -> bool:
+        try:
+            equipo = Equipo.objects.get(pk=equipo_id)
+            equipo.delete()
+            return True
+        except Equipo.DoesNotExist:
             return False
 

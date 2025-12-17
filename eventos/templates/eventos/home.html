@@ -38,6 +38,15 @@
             </div>
         </div>
     </div>
+    <div class="col-md-4 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Equipos</h5>
+                <h2 class="text-secondary">{{ total_equipos }}</h2>
+                <a href="{% url 'eventos:lista_equipos' %}" class="btn btn-secondary">Ver Equipos</a>
+            </div>
+        </div>
+    </div>
 </div>
 
 {% if eventos_futuros %}

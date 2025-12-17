@@ -3,9 +3,9 @@ from django.views.generic import ListView, CreateView, DetailView, UpdateView, D
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.core.exceptions import ValidationError
-from .models import Deporte, Evento, Participante
-from .forms import DeporteForm, EventoForm, ParticipanteForm
-from .services import DeporteService, EventoService, ParticipanteService
+from .models import Deporte, Evento, Participante, Equipo
+from .forms import DeporteForm, EventoForm, ParticipanteForm, EquipoForm
+from .services import DeporteService, EventoService, ParticipanteService, EquipoService
 
 
 # ==================== VISTAS PARA DEPORTES ====================
@@ -310,6 +310,39 @@ class EventoDeleteView(DeleteView):
             return redirect(self.success_url)
 
 
+# ==================== VISTAS PARA EQUIPOS ====================
+
+
+class EquipoCreateView(CreateView):
+    """Vista para crear un nuevo equipo"""
+    model = Equipo
+    form_class = EquipoForm
+    template_name = 'eventos/crear_equipo.html'
+
+    def form_valid(self, form):
+        try:
+            nombre = form.cleaned_data['nombre']
+            deporte_id = form.cleaned_data['deporte'].id
+            descripcion = form.cleaned_data.get('descripcion', '')
+            EquipoService.crear(nombre=nombre, deporte_id=deporte_id, descripcion=descripcion)
+            messages.success(self.request, f'Equipo "{nombre}" creado exitosamente.')
+            return redirect('eventos:detalle_deporte', pk=deporte_id)
+        except ValidationError as e:
+            messages.error(self.request, str(e))
+            return self.form_invalid(form)
+
+
+class EquipoListView(ListView):
+    """Vista para listar todos los equipos"""
+    model = Equipo
+    template_name = 'eventos/lista_equipos.html'
+    context_object_name = 'equipos'
+
+    def get_queryset(self):
+        return Equipo.objects.select_related('deporte').all()
+
+
+
 # ==================== VISTA PRINCIPAL ====================
 
 def home(request):
@@ -318,6 +351,7 @@ def home(request):
         'total_deportes': DeporteService.obtener_todos().count(),
         'total_eventos': EventoService.obtener_todos().count(),
         'total_participantes': ParticipanteService.obtener_todos().count(),
+        'total_equipos': Equipo.objects.count(),
         'eventos_futuros': EventoService.obtener_futuros()[:5],
     }
     return render(request, 'eventos/home.html', context)

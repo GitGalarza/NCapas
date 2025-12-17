@@ -2,7 +2,8 @@ from typing import Optional, List
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from .models import Deporte, Evento, Participante
-from .repositories import DeporteRepository, EventoRepository, ParticipanteRepository
+from .repositories import DeporteRepository, EventoRepository, ParticipanteRepository, EquipoRepository
+from .models import Equipo
 
 
 class DeporteService:
@@ -306,4 +307,40 @@ class EventoService:
             raise ValidationError(f"No se encontró el participante con ID {participante_id}")
 
         return EventoRepository.remover_participante(evento_id, participante_id)
+
+
+class EquipoService:
+    """Servicio con lógica de negocio para Equipo"""
+
+    @staticmethod
+    def obtener_por_deporte(deporte_id: int):
+        return EquipoRepository.get_by_deporte(deporte_id)
+
+    @staticmethod
+    def obtener_por_id(equipo_id: int):
+        return EquipoRepository.get_by_id(equipo_id)
+
+    @staticmethod
+    def crear(nombre: str, deporte_id: int, descripcion: str = None) -> Equipo:
+        # Validaciones básicas
+        if not nombre or not nombre.strip():
+            raise ValidationError("El nombre del equipo es obligatorio")
+
+        deporte = DeporteRepository.get_by_id(deporte_id)
+        if not deporte:
+            raise ValidationError(f"No se encontró el deporte con ID {deporte_id}")
+
+        nombre_limpio = nombre.strip()
+        existente = EquipoRepository.get_by_nombre_y_deporte(nombre_limpio, deporte_id)
+        if existente:
+            raise ValidationError(f"Ya existe un equipo llamado '{nombre_limpio}' para este deporte")
+
+        return EquipoRepository.create(nombre=nombre_limpio, deporte_id=deporte_id, descripcion=descripcion)
+
+    @staticmethod
+    def eliminar(equipo_id: int) -> bool:
+        equipo = EquipoRepository.get_by_id(equipo_id)
+        if not equipo:
+            raise ValidationError(f"No se encontró el equipo con ID {equipo_id}")
+        return EquipoRepository.delete(equipo_id)
 
